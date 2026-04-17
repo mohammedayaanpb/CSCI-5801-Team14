@@ -1,0 +1,12 @@
+Piece set: "cburnett"
+
+Source (downloaded from Lichess):
+- `https://github.com/lichess-org/lila/tree/master/public/piece/cburnett`
+
+Author: Colin M. L. Burnett
+License: CC BY-SA 3.0
+
+Note: These pieces are open-licensed and are used here to provide a chess GUI
+without using chess.com proprietary artwork.
+
+

@@ -1,0 +1,16 @@
+{
+  "pvp": {
+    "white_wins": 0,
+    "black_wins": 0,
+    "draws": 0,
+    "games": 0
+  },
+  "pvc": {
+    "human_wins": 0,
+    "engine_wins": 1,
+    "draws": 0,
+    "games": 1,
+    "human_as_white": 1,
+    "human_as_black": 0
+  }
+}
