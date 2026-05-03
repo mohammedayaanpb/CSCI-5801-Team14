@@ -290,3 +290,57 @@ class TestJumpOncePerTurn:
         assert first is True
         assert second is False
         assert game.jump_remaining[chess.WHITE] == before - 1
+
+class TestJumpKingRestriction:
+    """Spec: King cannot be jumped — only non-King pieces eligible.
+    Sprint task: SB-10."""
+
+    def test_cannot_jump_the_king(self):
+        """TC-JMP-03 — Attempting to jump the King returns False."""
+        game = SpellChessGame()
+        before_charges = game.jump_remaining[chess.WHITE]
+        before_cd = game.jump_cooldown[chess.WHITE]
+        result = game.cast_jump(chess.E1, chess.E3)
+        assert result is False
+        assert game.jump_remaining[chess.WHITE] == before_charges
+        assert game.jump_cooldown[chess.WHITE] == before_cd
+        assert game.board.piece_at(chess.E1) is not None
+        assert game.board.piece_at(chess.E1).piece_type == chess.KING
+
+
+class TestJumpRange:
+    """Spec: Destination within Chebyshev distance ≤ 2.
+    Sprint task: SB-11."""
+
+    def test_distance_two_boundary_succeeds(self):
+        """TC-JMP-04a — Destination at Chebyshev distance 2 is allowed."""
+        game = SpellChessGame()
+        result = game.cast_jump(chess.B1, chess.A3)
+        assert result is True
+        assert game.board.piece_at(chess.A3) is not None
+        assert game.board.piece_at(chess.A3).piece_type == chess.KNIGHT
+        assert game.board.piece_at(chess.B1) is None
+
+    def test_distance_three_fails(self):
+        """TC-JMP-04b — Destination at Chebyshev distance 3 is rejected."""
+        game = SpellChessGame()
+        before = game.jump_remaining[chess.WHITE]
+        result = game.cast_jump(chess.B1, chess.B4)
+        assert result is False
+        assert game.jump_remaining[chess.WHITE] == before
+        assert game.board.piece_at(chess.B1) is not None
+
+
+class TestJumpEmptyDestination:
+    """Spec: Destination must be empty — no capture by Jump.
+    Sprint task: SB-12."""
+
+    def test_jump_to_occupied_square_returns_false(self):
+        """TC-JMP-05 — Cannot jump onto a square containing a piece."""
+        game = SpellChessGame()
+        # B2 has White's pawn in the starting position
+        assert game.board.piece_at(chess.B2) is not None
+        result = game.cast_jump(chess.B1, chess.B2)
+        assert result is False
+        assert game.board.piece_at(chess.B1).piece_type == chess.KNIGHT
+        assert game.board.piece_at(chess.B2).piece_type == chess.PAWN
