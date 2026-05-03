@@ -245,3 +245,48 @@ class TestNewGameResetsBoard:
 #  Write tests that check the rules from SPELL_CHESS_RULES.md.        #
 #  If a test fails, you've found a bug — document it!                 #
 # ------------------------------------------------------------------ #
+
+
+
+#  JUMP SPELL TESTS  —  Owner: Ayaan Mohammed
+
+
+class TestJumpCharges:
+    """Spec: Each side starts with 3 jump charges; each cast costs 1;
+    cannot cast at 0 charges. Sprint task: SB-13."""
+
+    def test_starting_charges_are_three_per_side(self):
+        """TC-JMP-01a — Both sides start with exactly 3 jump charges."""
+        game = SpellChessGame()
+        assert game.jump_remaining[chess.WHITE] == 3
+        assert game.jump_remaining[chess.BLACK] == 3
+
+    def test_charges_decrement_after_successful_cast(self):
+        """TC-JMP-01b — A successful cast reduces caster's charges by 1."""
+        game = SpellChessGame()
+        before = game.jump_remaining[chess.WHITE]
+        result = game.cast_jump(chess.B1, chess.A3)
+        assert result is True
+        assert game.jump_remaining[chess.WHITE] == before - 1
+
+    def test_cannot_cast_at_zero_charges(self):
+        """TC-JMP-01c — With 0 charges, cast returns False, state unchanged."""
+        game = SpellChessGame()
+        game.jump_remaining[chess.WHITE] = 0
+        result = game.cast_jump(chess.B1, chess.A3)
+        assert result is False
+        assert game.jump_remaining[chess.WHITE] == 0
+
+
+class TestJumpOncePerTurn:
+    """Spec: Jump may be cast at most once per turn. Sprint task: SB-15."""
+
+    def test_second_cast_in_same_turn_returns_false(self):
+        """TC-JMP-02 — Second cast in same turn rejected; charges only decrement once."""
+        game = SpellChessGame()
+        before = game.jump_remaining[chess.WHITE]
+        first = game.cast_jump(chess.B1, chess.A3)
+        second = game.cast_jump(chess.G1, chess.H3)
+        assert first is True
+        assert second is False
+        assert game.jump_remaining[chess.WHITE] == before - 1
