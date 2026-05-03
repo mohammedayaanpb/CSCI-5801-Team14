@@ -149,6 +149,13 @@ class TestFreezeCasting:
             
         assert chess.A1 not in game.freeze_effect_squares, "Square A1 should NOT be frozen"
 
+
+    def test_freeze_squares_in_center(self):
+        game = SpellChessGame()
+        game.cast_freeze(chess.E4)
+
+        assert len(game.freeze_effect_squares) == 9
+
     def test_freeze_squares_in_corner(self):
         game = SpellChessGame()
         game.cast_freeze(chess.A8)
