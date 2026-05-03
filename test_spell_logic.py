@@ -344,3 +344,24 @@ class TestJumpEmptyDestination:
         assert result is False
         assert game.board.piece_at(chess.B1).piece_type == chess.KNIGHT
         assert game.board.piece_at(chess.B2).piece_type == chess.PAWN
+
+class TestJumpCooldown:
+    """Spec: 2-turn cooldown after a successful cast; decrements at start
+    of caster's next turn. Sprint task: SB-13."""
+
+    def test_cooldown_set_to_two_after_cast(self):
+        """TC-JMP-06a — Cooldown is set to 2 immediately after successful cast."""
+        game = SpellChessGame()
+        result = game.cast_jump(chess.B1, chess.A3)
+        assert result is True
+        assert game.jump_cooldown[chess.WHITE] == 2
+        assert game.jump_cooldown[chess.BLACK] == 0
+
+    def test_cooldown_decrements_after_full_round(self):
+        """TC-JMP-06b — Cooldown decrements at start of caster's next turn."""
+        game = SpellChessGame()
+        game.cast_jump(chess.B1, chess.A3)
+        # Make White's move and Black's move; cooldown should decrement once
+        game.make_move(chess.E2, chess.E4)
+        game.make_move(chess.E7, chess.E5)
+        assert game.jump_cooldown[chess.WHITE] == 1
