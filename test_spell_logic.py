@@ -365,3 +365,66 @@ class TestJumpCooldown:
         game.make_move(chess.E2, chess.E4)
         game.make_move(chess.E7, chess.E5)
         assert game.jump_cooldown[chess.WHITE] == 1
+
+class TestNewGame:
+    """Spec: Starting a new game resets everything.
+    Sprint tasks: SB-14, SB-15, SB-16, SB-17."""
+
+    def test_board_resets_to_starting_position(self):
+        """TC-NG-01 — Board returns to standard starting FEN."""
+        game = SpellChessGame()
+        game.make_move(chess.E2, chess.E4)
+
+        game.new_game()
+
+        assert game.board.fen() == chess.STARTING_FEN
+
+    def test_freeze_charges_reset(self):
+        """TC-NG-02 — Freeze charges reset to 5 for both sides."""
+        game = SpellChessGame()
+        game.freeze_remaining[chess.WHITE] = 2
+        game.freeze_remaining[chess.BLACK] = 0
+
+        game.new_game()
+
+        assert game.freeze_remaining[chess.WHITE] == 5
+        assert game.freeze_remaining[chess.BLACK] == 5
+
+    def test_jump_charges_reset(self):
+        """TC-NG-03 — Jump charges reset to 3 for both sides."""
+        game = SpellChessGame()
+        game.jump_remaining[chess.WHITE] = 1
+        game.jump_remaining[chess.BLACK] = 0
+
+        game.new_game()
+
+        assert game.jump_remaining[chess.WHITE] == 3
+        assert game.jump_remaining[chess.BLACK] == 3
+
+    def test_all_cooldowns_reset(self):
+        """TC-NG-04 — Freeze and Jump cooldowns reset to 0."""
+        game = SpellChessGame()
+        game.freeze_cooldown[chess.WHITE] = 3
+        game.freeze_cooldown[chess.BLACK] = 2
+        game.jump_cooldown[chess.WHITE] = 2
+        game.jump_cooldown[chess.BLACK] = 1
+
+        game.new_game()
+
+        assert game.freeze_cooldown[chess.WHITE] == 0
+        assert game.freeze_cooldown[chess.BLACK] == 0
+        assert game.jump_cooldown[chess.WHITE] == 0
+        assert game.jump_cooldown[chess.BLACK] == 0
+
+    def test_active_effects_cleared(self):
+        """TC-NG-05 — All active freeze effects are removed."""
+        game = SpellChessGame()
+        game.freeze_effect_color = chess.BLACK
+        game.freeze_effect_squares = {chess.E4, chess.E5}
+        game.freeze_effect_plies_left = 1
+
+        game.new_game()
+
+        assert game.freeze_effect_color is None
+        assert game.freeze_effect_squares == set()
+        assert game.freeze_effect_plies_left == 0
