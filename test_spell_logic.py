@@ -28,6 +28,7 @@ class TestFreezeTarget:
         assert game.freeze_effect_color == chess.BLACK
 
     def test_opponents_pieces_cannot_move_when_frozen(self):
+        #TC-FRZ-04, TC-FRZ-05a - Freeze prevents pieces in the area from moving on opponent's next turn
         game = SpellChessGame()
         # White casts freeze
         game.cast_freeze(chess.D7)
@@ -37,6 +38,7 @@ class TestFreezeTarget:
         move_success = game.make_move(chess.D7, chess.D5)
         assert move_success is False
     def test_freeze_lasts_one_move(self):
+        #TC-FRZ-05b - Freeze duration = 1 opponent turn
         game = SpellChessGame()
         # White casts freeze
         game.cast_freeze(chess.D7)
@@ -53,6 +55,7 @@ class TestFreezeTarget:
         assert move_success is True
         
     def test_frozen_piece_still_gives_check(self):
+        #TC-FRZ-07a - Frozen pieces still give check
         game = SpellChessGame()
         # Setup: Black Rook at E8, White King at E1
         # FEN: White King on e1, Black Rook on e8, others empty
@@ -66,6 +69,7 @@ class TestFreezeTarget:
         move = game.prepare_move(chess.E1, chess.E2)
         assert move not in game.board.legal_moves, "White should not be able to move into/stay in check"
     def test_frozen_piece_still_blocks_squares(self):
+        #TC-FRZ-07b - Frozen pieces still block squares
         game = SpellChessGame()
         # Setup: White Pawn at E2, Black Pawn at E3 
         game.board.set_fen("8/8/8/8/8/4p3/4P3/8 w - - 0 1")
@@ -78,6 +82,7 @@ class TestFreezeTarget:
         assert move_attempt is False, "White pawn should be blocked by the frozen Black pawn"
     
     def test_no_valid_moves_if_possible_moves_come_from_frozen_square(self):
+        #TC-FRZ-07c - If all of a player's legal moves originate from frozen squares, there should be no valid moves available
         game = SpellChessGame()
         # Setup : White Pawn E2 Black Pawn E5
         game.board.set_fen("8/8/8/4p3/8/8/4P3/8 w - - 0 1")
@@ -94,10 +99,12 @@ class TestFreezeTarget:
 
 class TestFreezeCharges:
     def test_each_side_starts_with_correct_number_freeze_spells(self):
+        # TC-FRZ-01a - Each side begins with 5 freeze charges
         game = SpellChessGame()
         assert game.freeze_remaining[chess.WHITE] == 5
         assert game.freeze_remaining[chess.BLACK] == 5
     def test_each_cast_costs_one_charge(self):
+        #TC-FRZ-01b - Each freeze cast costs 1 charge
         game = SpellChessGame()
         # White starts with 5 freeze spells
         assert game.freeze_remaining[chess.WHITE] == 5
@@ -106,12 +113,14 @@ class TestFreezeCharges:
         # There should be 4 left now
         assert game.freeze_remaining[chess.WHITE] == 4
     def test_cannot_freeze_with_zero_charges(self):
+        # TC-FRZ-01c - Cannot cast Freeze when charges = 0
         game = SpellChessGame()
         game.freeze_remaining[chess.WHITE] = 0 
         assert game.cast_freeze(chess.E4) is False
 
 class TestFreezeCasting:
     def test_cannot_freeze_twice_in_one_turn(self):
+        #TC-FRZ-02a - Freeze may be cast at most once per turn
         game = SpellChessGame()
         
         # the first cast should succeed
@@ -123,6 +132,7 @@ class TestFreezeCasting:
         assert second_cast is False, "Should not be able to cast Freeze twice in one turn"
     
     def test_cannot_freeze_after_move(self):
+        # TC-FRZ-02b - Freeze cannot be cast after move
         game = SpellChessGame()
 
         # make a move
@@ -134,6 +144,7 @@ class TestFreezeCasting:
         assert game.freeze_remaining[chess.WHITE] == 5, "White should have all 5 freeze spells"
 
     def test_freeze_targets_correct_3x3_area(self):
+        #TC-FRZ-03a - Freeze affects a 3×3 area centered on chosen square (includes center)
         game = SpellChessGame()
         
         game.cast_freeze(chess.E4)
@@ -151,18 +162,21 @@ class TestFreezeCasting:
 
 
     def test_freeze_squares_in_center(self):
+        #TC-FRZ-03b - Freeze 3×3 area covers 9 squares for an interior center
         game = SpellChessGame()
         game.cast_freeze(chess.E4)
 
         assert len(game.freeze_effect_squares) == 9
 
     def test_freeze_squares_in_corner(self):
+        #TC-FRZ-03c - Freeze 3×3 area covers 4 squares for a corner center
         game = SpellChessGame()
         game.cast_freeze(chess.A8)
 
         assert len(game.freeze_effect_squares) == 4
 
     def test_freeze_squares_in_edge(self):
+        # TC-FRZ-03d - Freeze 3×3 area covers 6 squares for an edge center
         game = SpellChessGame()
         game.cast_freeze(chess.A4)
 
@@ -171,6 +185,7 @@ class TestFreezeCasting:
 
 class TestFreezeCooldown:
     def test_size_cooldown_after_freeze(self):
+        # TC-FRZ-06a - Caster freeze cooldown = 3 turns after a successful cast
         game = SpellChessGame()
 
         #White uses a freeze and cool down should be 3
@@ -179,6 +194,7 @@ class TestFreezeCooldown:
         assert game.freeze_cooldown[chess.WHITE] == 3
     
     def test_cooldown_decrement_on_turn(self):
+        # TC-FRZ-06b - Freeze cooldown decrements at start of caster's turn
         game = SpellChessGame()
 
         game.cast_freeze(chess.D7)
@@ -192,6 +208,7 @@ class TestFreezeCooldown:
         assert game.freeze_cooldown[chess.WHITE] == (init_cooldown - 1)
 
     def test_caster_waits_for_cooldown_to_freeze(self):
+        #TC-FRZ-06c - Caster cannot cast freeze again until cooldown reaches 0
         game = SpellChessGame()
 
         # white uses freeze
